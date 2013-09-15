@@ -61,7 +61,7 @@ THE SOFTWARE.*/
 
 /*==================BEGIN USER MACRO=========================*/
 #define MAX_LOAD 64 //Maximum Number of gnuPlot Graph Handler
-#define PLOT_INTERVAL 15 //Time Interval of RT Plotting
+#define PLOT_INTERVAL 5 //Time Interval of RT Plotting
 /*===================END USER MACRO==========================*/
 
 #define NANO_SECOND 1000000000
