@@ -739,6 +739,7 @@ int main(int argc, char const *argv[])
 			}
 			free(graph_Value);
 			printf("Termination...Child Process Terminated\n");
+			
 			//pclose(gnuPlotPipe);
 			_Exit(3);
 			break;
