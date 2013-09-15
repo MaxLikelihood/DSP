@@ -690,6 +690,12 @@ int main(int argc, char const *argv[])
 				return -1;
 			}
 			//create plotter thread
+			if (pthread_create(&child_t_id, &child_t_attr, GraphDisplay, NULL) != 0){
+				printf("Error creating plotter thread in child\n");
+				return -1;
+			} else {
+				printf("Launching...Plotter Thread Created\n");
+			}
 
 			gnuPlotPipe = popen("gnuplot", "w");
 			if (gnuPlotPipe == NULL){
@@ -988,7 +994,9 @@ int main(int argc, char const *argv[])
 						}
 						//dispatch workers
 						for (i=0; i<(*freqIndex); i++){
-							pthread_create(&(t_id[i]), &t_attr, DFTFloat32SingleFrequency, fq[i]);
+							if (pthread_create(&(t_id[i]), &t_attr, DFTFloat32SingleFrequency, fq[i]) != 0){
+								printf("Error Creating DSP Computation Worker Index: %d\n", i);
+							}
 						}
 						//sync all workers
 						for (i=0; i<(*freqIndex); i++){
