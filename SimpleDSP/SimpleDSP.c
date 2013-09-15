@@ -665,14 +665,32 @@ int main(int argc, char const *argv[])
 				printf("Error redirecting STDIN_FILENO to pipe read-end in child\n");
 				return -1;
 			}
+			//initialize plotter thread attribute and set joinable state
+			if (pthread_attr_init(&child_t_attr) != 0 || pthread_attr_setdetachstate(&child_t_attr, PTHREAD_CREATE_JOINABLE) != 0){
+				printf("Error initializing plotter thread attribute and set joinable state in child\n");
+				return -1;
+			}
+			//initialize conditional variable with related attribute and mutex
+			if (pthread_condattr_init(&child_condattr_buffer) != 0 || pthread_condattr_setpshared(&child_condattr_buffer, PTHREAD_PROCESS_SHARED) != 0){
+				printf("Error initializing and setting condition variable attribute values in child\n");
+				return -1;
+			}
+			if (pthread_cond_init(&child_cond_buffer, &child_condattr_buffer) !=0){
+				printf("Error initializing condition variable with attribute in child\n");
+				return -1;
+			}
+			if (pthread_mutexattr_init(&child_mutexattr_buffer) != 0 || pthread_mutexattr_setpshared(&child_mutexattr_buffer, PTHREAD_PROCESS_SHARED) != 0){
+				printf("Error initializing mutex attribute and set to process shared in child\n");
+				return -1;
+			}
+			if (pthread_mutex_init(&child_mutex_buffer, &child_mutexattr_buffer) !=0){
+				printf("Error initializing mutex with attributes in child\n");
+				return -1;
+			}
+
 			gnuPlotPipe = popen("gnuplot", "w");
 			if (gnuPlotPipe == NULL){
 				printf("Failure to open pipe to gnuplot in child\n");
-				return -1;
-			}
-			//initialize plotter thread attribute and set joinable state
-			if (pthread_attr_init(&child_t_attr) != 0 || pthread_attr_setdetachstate(&child_t_attr, PTHREAD_CREATE_JOINABLE) != 0){
-				printf("Error initializing plotter thread attribute and set joinable state\n");
 				return -1;
 			}
 			printf("Launching...gnuPlot Pipe Redirecting\n");
@@ -731,6 +749,16 @@ int main(int argc, char const *argv[])
 				printf("Error restoring STDOUT_FILENO file descriptor in child\n");
 				return -1;
 			}
+			//destroy plotter thread attribute, mutex attribute, mutex
+			if(pthread_attr_destroy(&child_t_attr) != 0 || pthread_mutexattr_destroy(&child_mutexattr_buffer) !=0 || pthread_mutex_destroy(&child_mutex_buffer) !=0){
+				printf("Error destroying plotter thread attribute, and/or mutex attribute, and/or mutex in child\n");
+				return -1;
+			}
+			//destroy cond var and associated attributes
+			if(pthread_condattr_destroy(&child_condattr_buffer) != 0 || pthread_cond_destroy(&child_cond_buffer) != 0){
+				printf("Error destroying conditional variable with associated attribute in child\n");
+				return -1;
+			}
 			printf("Exiting...gnuPlot Realtime Plotting Process Terminating\n");
 			free(graph_Freq);
 			free(graph_Time);
@@ -739,7 +767,6 @@ int main(int argc, char const *argv[])
 			}
 			free(graph_Value);
 			printf("Termination...Child Process Terminated\n");
-			
 			//pclose(gnuPlotPipe);
 			_Exit(3);
 			break;
