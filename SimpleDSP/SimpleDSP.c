@@ -1,8 +1,31 @@
-//To Compile:
-//gcc -o SimpleDSP SimpleDSP.c -lportaudio -lpthread -lm -lrt -Wall -Wextra
+/*The MIT License (MIT)
+
+Copyright (c) 2013 Fan Jin
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.*/
 
 /*
 *====================Documentation=======================
+*					  Compilation
+*gcc -o SimpleDSP SimpleDSP.c -lportaudio -lpthread -lm -lrt -Wall -Wextra
+*
+*
 *					  Future Work
 *-Robust localization technique workable around environmental noise
 *-Time series filtering (comb filter) [Information Encoding via Frequency]
@@ -10,16 +33,15 @@
 *-Implement additional FFT option (with variable FFT size)
 *-Sound Signature Identification (Hybrid Technology Involve Implementation Similar to Speech Recognition)
 *-Include calibration function to accurately estimate the frequency range of tone emission (record reference ambient, reference tone, divides and search for narrowest range(while increasing FFT bin size))
-*-
 *-Time stamp data file
 *-Control parent to wait for child's exit
-*-
-*=======================Note=============================
+*
+*				     Author's Note
 *-"Packet" in variable refers to the individual data structure that contains DSP computation results for each individual frequency
-*-
-*-
-*-
-*-
+*
+*
+*
+*
 *==================End Documentation=====================
 */
 
@@ -604,7 +626,7 @@ int main(int argc, char const *argv[])
 	char ch='x';
 
 	//declare IPC related variables
-	pid_t plotterPID; //plotter process PID returned by fork
+	pid_t childPID; //child process PID returned by fork
 	FILE* gnuPlotPipe; //gnuPlot stream
 
 	//allocate shared memory region
@@ -647,7 +669,7 @@ int main(int argc, char const *argv[])
 	}
 	
 	//forking
-	switch (plotterPID = fork()){
+	switch (childPID = fork()){
 		case -1:
 			printf("Failure to fork new child process\n");
 			return -1;
@@ -1060,6 +1082,7 @@ int main(int argc, char const *argv[])
 					//printf("Parent Process Mutex Release Success\n");
 				}
 			}
+
 			break;
 	}
 	close_keyboard();
