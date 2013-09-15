@@ -1202,6 +1202,7 @@ void* GraphDisplay(void* argument){
 							printf(PRINTF_S_FORMAT" "PRINTF_S_FORMAT"\n", graph_Time[j], graph_Value[0][j]);
 						}
 						printf("e\n");
+						fflush(stdout);
 					} else {
 						printf("set xrange [ 0.00000 : %d ] noreverse\n", gnuPlotIPC->interval);
 						printf("set yrange [ %d : %d ] noreverse\n", graph_Freq[0], graph_Freq[gnuPlotIPC->packetCount-1]);
@@ -1219,7 +1220,8 @@ void* GraphDisplay(void* argument){
 								printf(PRINTF_S_FORMAT" %d "PRINTF_S_FORMAT"\n", graph_Time[j], graph_Freq[i], graph_Value[i][j]);
 							}
 							printf("e\n");
-						}						
+						}
+						fflush(stdout);						
 					}
 				} else {
 					start = writePos;
@@ -1234,6 +1236,7 @@ void* GraphDisplay(void* argument){
 							j = (j+1) % gnuPlotIPC->bufferSize;
 						} while (j != start);
 						printf("e\n");
+						fflush(stdout);
 					} else {
 						printf("set xrange [ "PRINTF_S_FORMAT" : "PRINTF_S_FORMAT" ] noreverse\n", graph_Time[start], graph_Time[end]);
 						printf("set yrange [ %d : %d ] noreverse\n", graph_Freq[0], graph_Freq[gnuPlotIPC->packetCount-1]);
@@ -1254,6 +1257,7 @@ void* GraphDisplay(void* argument){
 							} while (j != start);
 							printf("e\n");
 						}
+						fflush(stdout);
 					}
 				}
 			}
@@ -1263,7 +1267,6 @@ void* GraphDisplay(void* argument){
 			} else {
 				//printf("Plotter Thread Mutex Release Success\n");
 			}
-			
 		}
 	}
 	pthread_exit(0);
