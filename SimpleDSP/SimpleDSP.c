@@ -12,10 +12,6 @@
 *-Include calibration function to accurately estimate the frequency range of tone emission (record reference ambient, reference tone, divides and search for narrowest range(while increasing FFT bin size))
 *-
 *-Time stamp data file
-*-Plot 3D graph using gnuplot (RT plotting) [Adjust time axis by v=(max - current), f.ex if v < 3 seconds then advance axis by 3 ]
-*-Employ data buffering with dynamic sizing managed by child, 
-*-Use shared variable to dynamically control plotting process (1 for entry number, 1 for print (busy looping))
-*-Print Procedure (Parent -> Send Data via pipe -> Child recieves and creates data file(stamped by time and date) -> Child thread creates/updates graph)
 *-
 *-
 *=======================Note=============================
@@ -952,9 +948,9 @@ int main(int argc, char const *argv[])
 			
 			if (outputFormat == 2){//data file output format
 				//open data fp
-				fp = fopen("Data.txt", "w+");
+				fp = fopen("DSP.dat", "w+");
 				if (fp == NULL){
-					printf("Error Creating Data File\n");
+					printf("Error Creating DSP Data File\n");
 				}
 			}
 
