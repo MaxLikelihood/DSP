@@ -12,7 +12,7 @@
 *-Include calibration function to accurately estimate the frequency range of tone emission (record reference ambient, reference tone, divides and search for narrowest range(while increasing FFT bin size))
 *-
 *-Time stamp data file
-*-
+*-Control parent to wait for child's exit
 *-
 *=======================Note=============================
 *-"Packet" in variable refers to the individual data structure that contains DSP computation results for each individual frequency
@@ -35,10 +35,12 @@
 #include "portaudio.h"
 #include "kbhit.h"
 
+/*==================BEGIN USER MACRO=========================*/
+#define MAX_LOAD 64 //Maximum Number of gnuPlot Graph Handler
+#define PLOT_INTERVAL 30 //Time Interval of RT Plotting
+/*===================END USER MACRO==========================*/
+
 #define NANO_SECOND 1000000000
-#define LINE_SIZE 128
-#define MAX_LOAD 64 //Defines Maximum Number Of Frequencies To Be Plotted In RT
-#define PLOT_INTERVAL 15
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
