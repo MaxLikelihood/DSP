@@ -61,7 +61,7 @@ THE SOFTWARE.*/
 
 /*==================BEGIN USER MACRO=========================*/
 #define MAX_LOAD 64 //Maximum Number of gnuPlot Graph Handler
-#define PLOT_INTERVAL 30 //Time Interval of RT Plotting
+#define PLOT_INTERVAL 15 //Time Interval of RT Plotting
 /*===================END USER MACRO==========================*/
 
 #define NANO_SECOND 1000000000
@@ -1204,6 +1204,7 @@ void* GraphDisplay(void* argument){
 						printf("e\n");
 						fflush(stdout);
 					} else {
+						printf("set ylabel \"Frequency\"\n");
 						printf("set xrange [ 0.00000 : %d ] noreverse\n", gnuPlotIPC->interval);
 						printf("set yrange [ %d : %d ] noreverse\n", graph_Freq[0], graph_Freq[gnuPlotIPC->packetCount-1]);
 						printf("splot '-' using 1:2:3 title '%d Hz', ", graph_Freq[0]);
@@ -1220,8 +1221,8 @@ void* GraphDisplay(void* argument){
 								printf(PRINTF_S_FORMAT" %d "PRINTF_S_FORMAT"\n", graph_Time[j], graph_Freq[i], graph_Value[i][j]);
 							}
 							printf("e\n");
-						}
-						fflush(stdout);						
+						}												
+						fflush(stdout);
 					}
 				} else {
 					start = writePos;
@@ -1239,6 +1240,7 @@ void* GraphDisplay(void* argument){
 						printf("e\n");
 						fflush(stdout);
 					} else {
+						printf("set ylabel \"Frequency\"\n");
 						printf("set xrange [ "PRINTF_S_FORMAT" : "PRINTF_S_FORMAT" ] noreverse\n", graph_Time[start], graph_Time[end]);
 						printf("set yrange [ %d : %d ] noreverse\n", graph_Freq[0], graph_Freq[gnuPlotIPC->packetCount-1]);
 						printf("splot '-' using 1:2:3 title '%d Hz', ", graph_Freq[0]);
