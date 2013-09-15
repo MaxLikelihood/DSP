@@ -54,6 +54,8 @@ THE SOFTWARE.*/
 #include <time.h>
 #include <pthread.h>
 #include <sys/mman.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include "portaudio.h"
 #include "kbhit.h"
 
@@ -1082,7 +1084,7 @@ int main(int argc, char const *argv[])
 					//printf("Parent Process Mutex Release Success\n");
 				}
 			}
-
+			wait(NULL);
 			break;
 	}
 	close_keyboard();
