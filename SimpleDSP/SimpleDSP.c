@@ -655,6 +655,12 @@ int main(int argc, char const *argv[])
 				printf("Failure to close pipe write-end in child\n");
 				return -1;
 			}
+			//store STDOUT_FILENO fd
+			stdFD[1] = dup(STDOUT_FILENO);
+			if (stdFD[1] < 0){
+				printf("Error duplicating STDOUT_FILENO in child\n");
+				return -1;
+			}
 			if (dup2(pipeFD[0], STDIN_FILENO) < 0){
 				printf("Error redirecting STDIN_FILENO to pipe read-end in child\n");
 				return -1;
@@ -721,13 +727,18 @@ int main(int argc, char const *argv[])
 					}
 				}			
 			}
+			if (dup2(stdFD[1], STDOUT_FILENO) < 0){
+				printf("Error restoring STDOUT_FILENO file descriptor in child\n");
+				return -1;
+			}
+			printf("Exiting...gnuPlot Realtime Plotting Process Terminating\n");
 			free(graph_Freq);
 			free(graph_Time);
 			for (i=0; i<(gnuPlotIPC->packetCount); i++){
 				free(graph_Value[i]);
 			}
 			free(graph_Value);
-			//printf("Child Process Exiting\n");
+			printf("Termination...Child Process Terminated\n");
 			//pclose(gnuPlotPipe);
 			_Exit(3);
 			break;
@@ -1019,7 +1030,7 @@ int main(int argc, char const *argv[])
 	free(startTime);
 	free(streamTime);
 
-	printf("Terminated\n");
+	printf("Termination...Main Process Terminated\n");
 	return 0;
 }
 
