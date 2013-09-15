@@ -611,7 +611,6 @@ void setupPlot(){
 	printf("set title \"DSP Frequency Decibel RT Spectrum\n");
 	printf("set style data lines\n");
 	printf("set xlabel \"Time\"\n");
-	printf("set ylabel \"Frequency\"\n");
 	printf("set zlabel \"Decibel\"\n");
 	printf("set xtics 0,1\n");
 	printf("set ytics\n");
@@ -1195,6 +1194,7 @@ void* GraphDisplay(void* argument){
 			if (__sync_fetch_and_add(&graph_Display, 0)){
 				if (fullBuffer == 0){
 					if (gnuPlotIPC->packetCount == 1){
+						printf("set ylabel \"Decibel\"\n");
 						printf("set xrange [ 0.00000 : %d ] noreverse\n", gnuPlotIPC->interval);
 						printf("set yrange [ * : 0] noreverse\n");
 						printf("plot '-' using 1:2 title '%d Hz'\n", graph_Freq[0]);
@@ -1226,7 +1226,8 @@ void* GraphDisplay(void* argument){
 				} else {
 					start = writePos;
 					end = (writePos - 1 + gnuPlotIPC->bufferSize) % gnuPlotIPC->bufferSize;
-					if (gnuPlotIPC->packetCount == 1){						
+					if (gnuPlotIPC->packetCount == 1){
+						printf("set ylabel \"Decibel\"\n");
 						printf("set xrange [ "PRINTF_S_FORMAT" : "PRINTF_S_FORMAT" ] noreverse\n", graph_Time[start], graph_Time[end]);
 						printf("set yrange [ * : 0] noreverse\n");
 						printf("plot '-' using 1:2 title '%d Hz'\n", graph_Freq[0]);
