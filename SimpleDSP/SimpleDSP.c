@@ -42,6 +42,7 @@
 #define NANO_SECOND 1000000000
 #define LINE_SIZE 128
 #define MAX_LOAD 64 //Defines Maximum Number Of Frequencies To Be Plotted In RT
+#define PLOT_INTERVAL 15
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -187,6 +188,14 @@ pthread_cond_t child_cond_buffer;
 pthread_condattr_t child_condattr_buffer;
 pthread_mutex_t child_mutex_buffer;
 pthread_mutexattr_t child_mutexattr_buffer;
+
+//declare gnuPlot related variables
+int* graph_Freq; //Y axis
+double* graph_Time; //X axis
+double** graph_Value; //Z axis
+int graph_Display; //execution indicating boolean variable
+int writePos; //circular buffer latest write index
+int fullBuffer; //indicate full buffer state
 
 //file variables
 FILE* fp;
@@ -585,11 +594,12 @@ void setupPlot(){
 	printf("set xtics 0,1\n");
 	printf("set ytics\n");
 	printf("set ztics\n");
+	printf("set zrange [ * : 0.0000 ] noreverse\n");
 }
 
 int main(int argc, char const *argv[])
 {
-	int ret, i, j;
+	int ret, i;
 	float* xPtr;
 	float* yPtr;
 	float* zPtr;
@@ -598,10 +608,6 @@ int main(int argc, char const *argv[])
 	//declare IPC related variables
 	pid_t plotterPID; //plotter process PID returned by fork
 	FILE* gnuPlotPipe; //gnuPlot stream
-	int* graph_Freq; //Y axis
-	double* graph_Time; //X axis
-	double** graph_Value; //Z axis
-	int writePos;
 
 	//allocate shared memory region
 	gnuPlotIPC = (IPCSyncObj*)mmap(NULL, sizeof(IPCSyncObj), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0);
@@ -613,7 +619,7 @@ int main(int argc, char const *argv[])
 
 	gnuPlotIPC->state = 1; //execution switch for plotter 1 = Continue 0 = Exit
 	gnuPlotIPC->setup = 0; //setup gnuPlot parameters 0 = uninitialized 1 = initialized
-	gnuPlotIPC->interval = 15; //plotting timeframe interval
+	gnuPlotIPC->interval = PLOT_INTERVAL; //plotting timeframe interval
 	gnuPlotIPC->cond_signal = 1; //busy waiting until established buffer size
 
 	if (pthread_condattr_init(&(gnuPlotIPC->condattr_IPC)) != 0 || pthread_condattr_setpshared(&(gnuPlotIPC->condattr_IPC), PTHREAD_PROCESS_SHARED) != 0){
@@ -689,6 +695,8 @@ int main(int argc, char const *argv[])
 				printf("Error initializing mutex with attributes in child\n");
 				return -1;
 			}
+
+			graph_Display = 1; //enable plotter thread execution
 			//create plotter thread
 			if (pthread_create(&child_t_id, &child_t_attr, GraphDisplay, NULL) != 0){
 				printf("Error creating plotter thread in child\n");
@@ -753,6 +761,10 @@ int main(int argc, char const *argv[])
 						}
 						writePos = (writePos + 1) % gnuPlotIPC->bufferSize;
 
+						if (writePos == 0 && fullBuffer == 0){
+							fullBuffer = 1; //indicate circular buffer full
+						}
+
 						if (pthread_cond_signal(&child_cond_buffer) != 0){
 							//printf("Child Process Thread Signal Failed\n");
 						} else {
@@ -772,6 +784,25 @@ int main(int argc, char const *argv[])
 					}
 				}		
 			}
+			//terminate plotter thread and send empty signal to avoid blocking
+			__sync_fetch_and_sub(&graph_Display, 1);
+			if (pthread_mutex_lock(&child_mutex_buffer) != 0) {
+				//printf("Child Process Thread Mutex Acquisition Failed\n");
+			} else {
+				//printf("Child Process Thread Mutex Acquisition Success\n");
+				if (pthread_cond_signal(&child_cond_buffer) != 0){
+					//printf("Child Process Thread Signal Failed\n");
+				} else {
+					//printf("Child Process Thread Signal Success\n");
+				}
+				//empty signal
+				if (pthread_mutex_unlock(&child_mutex_buffer) != 0){
+					//printf("Child Process Thread Mutex Release Failed\n");
+				} else {
+					//printf("Child Process Thread Mutex Release Success\n");
+				}
+			}
+			pthread_join(child_t_id, NULL);
 			//restore STDOUT_FILENO fd
 			if (dup2(stdFD[1], STDOUT_FILENO) < 0){
 				printf("Error restoring STDOUT_FILENO file descriptor in child\n");
@@ -1126,5 +1157,91 @@ void* DFTFloat32SingleFrequency(void* argument){
 }
 
 void* GraphDisplay(void* argument){
-
+	int i, j;
+	int start, end;
+	while (__sync_fetch_and_add(&graph_Display, 0)){
+		if (pthread_mutex_lock(&child_mutex_buffer) != 0){ //attempt to lock
+			//printf("Plotter Thread Mutex Acquisition Failed\n"); //failed
+		} else {
+			//printf("Plotter Thread Mutex Acquisition Success\n"); //lock acquired
+			if (pthread_cond_wait(&child_cond_buffer, &child_mutex_buffer) != 0){
+				//printf("Plotter Thread Condition Wait Failed\n");
+			} else {
+				//printf("Plotter Thread Condition Wait Success\n");
+			}
+			if (__sync_fetch_and_add(&graph_Display, 0)){
+				if (fullBuffer == 0){
+					if (gnuPlotIPC->packetCount == 1){
+						printf("set xrange [ 0.00000 : %d ] noreverse\n", gnuPlotIPC->interval);
+						printf("set yrange [ * : 0] noreverse\n");
+						printf("plot '-' using 1:2 title '%d Hz'\n", graph_Freq[0]);
+						for (j=0; j < writePos; j++){
+							printf(PRINTF_S_FORMAT" "PRINTF_S_FORMAT"\n", graph_Time[j], graph_Value[0][j]);
+						}
+						printf("e\n");
+					} else {
+						printf("set xrange [ 0.00000 : %d ] noreverse\n", gnuPlotIPC->interval);
+						printf("set yrange [ %d : %d ] noreverse\n", graph_Freq[0], graph_Freq[gnuPlotIPC->packetCount-1]);
+						printf("splot '-' using 1:2:3 title '%d Hz', ", graph_Freq[0]);
+						if (gnuPlotIPC->packetCount == 2){
+							printf("'-' using 1:2:3 title '%d Hz'\n", graph_Freq[1]);
+						} else {
+							for (i=1; i<(gnuPlotIPC->packetCount - 1); i++){
+								printf("'-' using 1:2:3 title '%d Hz', ", graph_Freq[i]);
+							}
+							printf("'-' using 1:2:3 title '%d Hz'\n", graph_Freq[gnuPlotIPC->packetCount -1]);
+						}						
+						for (i=0; i<(gnuPlotIPC->packetCount); i++){
+							for (j=0; j < writePos; j++){
+								printf(PRINTF_S_FORMAT" %d "PRINTF_S_FORMAT"\n", graph_Time[j], graph_Freq[i], graph_Value[i][j]);
+							}
+							printf("e\n");
+						}						
+					}
+				} else {
+					start = writePos;
+					end = (writePos - 1 + gnuPlotIPC->bufferSize) % gnuPlotIPC->bufferSize;
+					if (gnuPlotIPC->packetCount == 1){						
+						printf("set xrange [ "PRINTF_S_FORMAT" : "PRINTF_S_FORMAT" ] noreverse\n", graph_Time[start], graph_Time[end]);
+						printf("set yrange [ * : 0] noreverse\n");
+						printf("plot '-' using 1:2 title '%d Hz'\n", graph_Freq[0]);
+						j = start;
+						do{
+							printf(PRINTF_S_FORMAT" "PRINTF_S_FORMAT"\n", graph_Time[j], graph_Value[0][j]);
+							j = (j+1) % gnuPlotIPC->bufferSize;
+						} while (j != start);
+						printf("e\n");
+					} else {
+						printf("set xrange [ "PRINTF_S_FORMAT" : "PRINTF_S_FORMAT" ] noreverse\n", graph_Time[start], graph_Time[end]);
+						printf("set yrange [ %d : %d ] noreverse\n", graph_Freq[0], graph_Freq[gnuPlotIPC->packetCount-1]);
+						printf("splot '-' using 1:2:3 title '%d Hz', ", graph_Freq[0]);
+						if (gnuPlotIPC->packetCount == 2){
+							printf("'-' using 1:2:3 title '%d Hz'\n", graph_Freq[1]);
+						} else {
+							for (i=1; i<(gnuPlotIPC->packetCount - 1); i++){
+								printf("'-' using 1:2:3 title '%d Hz', ", graph_Freq[i]);
+							}
+							printf("'-' using 1:2:3 title '%d Hz'\n", graph_Freq[gnuPlotIPC->packetCount -1]);
+						}						
+						for (i=0; i<(gnuPlotIPC->packetCount); i++){
+							j = start;
+							do{
+								printf(PRINTF_S_FORMAT" %d "PRINTF_S_FORMAT"\n", graph_Time[j], graph_Freq[i], graph_Value[i][j]);
+								j = (j+1) % gnuPlotIPC->bufferSize;
+							} while (j != start);
+							printf("e\n");
+						}
+					}
+				}
+			}
+			//release mutex
+			if (pthread_mutex_unlock(&child_mutex_buffer) != 0){
+				//printf("Plotter Thread Mutex Release Failed\n");
+			} else {
+				//printf("Plotter Thread Mutex Release Success\n");
+			}
+			
+		}
+	}
+	pthread_exit(0);
 }
