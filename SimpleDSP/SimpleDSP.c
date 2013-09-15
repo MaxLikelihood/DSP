@@ -172,15 +172,20 @@ int stdFD[2]; //file descriptors for stdin & stdout
 //data output format
 int outputFormat = 1; //atomically operated variable to manage data output format
 
-//declare thread related variables
+//declare parent thread related variables
 pthread_t* t_id;
 pthread_attr_t t_attr;
 pthread_cond_t cond_buffer;
 pthread_condattr_t condattr_buffer;
 pthread_mutex_t mutex_buffer;
 pthread_mutexattr_t mutexattr_buffer;
+//declare child thread related variables
 pthread_t child_t_id;
 pthread_attr_t child_t_attr;
+pthread_cond_t child_cond_buffer;
+pthread_condattr_t child_condattr_buffer;
+pthread_mutex_t child_mutex_buffer;
+pthread_mutexattr_t child_mutexattr_buffer;
 
 //file variables
 FILE* fp;
