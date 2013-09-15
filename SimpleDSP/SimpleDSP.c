@@ -75,6 +75,7 @@ typedef char SAMPLE;
 int compare(const void*, const void*);
 int streamCallback(const void*, void*,unsigned long, const PaStreamCallbackTimeInfo*, PaStreamCallbackFlags, void*);
 void* DFTFloat32SingleFrequency(void*);
+void* GraphDisplay(void*);
 int queueInputDevice();
 void buildFrequency();
 void destroyFrequency();
@@ -665,6 +666,7 @@ int main(int argc, char const *argv[])
 				printf("Error redirecting STDIN_FILENO to pipe read-end in child\n");
 				return -1;
 			}
+			printf("Launching...Initializing Plotter Thread\n");
 			//initialize plotter thread attribute and set joinable state
 			if (pthread_attr_init(&child_t_attr) != 0 || pthread_attr_setdetachstate(&child_t_attr, PTHREAD_CREATE_JOINABLE) != 0){
 				printf("Error initializing plotter thread attribute and set joinable state in child\n");
@@ -687,6 +689,7 @@ int main(int argc, char const *argv[])
 				printf("Error initializing mutex with attributes in child\n");
 				return -1;
 			}
+			//create plotter thread
 
 			gnuPlotPipe = popen("gnuplot", "w");
 			if (gnuPlotPipe == NULL){
@@ -730,21 +733,40 @@ int main(int argc, char const *argv[])
 					} else {
 						//printf("Child Process Condition Wait Success\n");
 					}
-					//write to circular buffer of DSP computation result
-					graph_Time[writePos] = gnuPlotIPC->packetTime;						
-					for (i=0; i<(gnuPlotIPC->packetCount); i++){
-						graph_Freq[i] = gnuPlotIPC->DSPBundle[i].frequency;
-						graph_Value[i][writePos] = gnuPlotIPC->DSPBundle[i].decibel;
+
+					if (pthread_mutex_trylock(&child_mutex_buffer) != 0) {
+						//printf("Child Process Thread Mutex Acquisition Failed\n");
+					} else {
+						//printf("Child Process Thread Mutex Acquisition Success\n");
+
+						//write to circular buffer of DSP computation result
+						graph_Time[writePos] = gnuPlotIPC->packetTime;						
+						for (i=0; i<(gnuPlotIPC->packetCount); i++){
+							graph_Freq[i] = gnuPlotIPC->DSPBundle[i].frequency;
+							graph_Value[i][writePos] = gnuPlotIPC->DSPBundle[i].decibel;
+						}
+						writePos = (writePos + 1) % gnuPlotIPC->bufferSize;
+
+						if (pthread_cond_signal(&child_cond_buffer) != 0){
+							//printf("Child Process Thread Signal Failed\n");
+						} else {
+							//printf("Child Process Thread Signal Success\n");
+						}
+						if (pthread_mutex_unlock(&child_mutex_buffer) != 0){
+							//printf("Child Process Thread Mutex Release Failed\n");
+						} else {
+							//printf("Child Process Thread Mutex Release Success\n");
+						}
 					}
-					writePos = (writePos + 1) % gnuPlotIPC->bufferSize;
 					
 					if (pthread_mutex_unlock(&(gnuPlotIPC->mutex_IPC)) != 0) { //release lock
 						//printf("Child Process Mutex Released Failed\n");
 					} else {
 						//printf("Child Process Mutex Release Success\n");
 					}
-				}			
+				}		
 			}
+			//restore STDOUT_FILENO fd
 			if (dup2(stdFD[1], STDOUT_FILENO) < 0){
 				printf("Error restoring STDOUT_FILENO file descriptor in child\n");
 				return -1;
@@ -1093,4 +1115,8 @@ void* DFTFloat32SingleFrequency(void* argument){
 	*(DFTData->magnitude) = magn;
 	*(DFTData->decibel) = dB;
 	pthread_exit(0);
+}
+
+void* GraphDisplay(void* argument){
+
 }
