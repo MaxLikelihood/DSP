@@ -448,6 +448,10 @@ int parseFrequency(){
 		} else if (input[j] ==',' || input[j] == '\0'){
 			freq[k] = '\0';
 			parsed = atoi(freq);
+			if (parsed > SAMPLE_RATE/2) {
+				printf("Error: Frequency %d Hz exceeds the Nyquist Folding Frequency %d\n", parsed, SAMPLE_RATE/2);
+				return -1;
+			}
 			ptr = (int*)((unsigned char*)freqList + sizeof(int)*(*freqIndex));
 			*ptr = parsed;
 			if ((*freqIndex) == (*freqListSize) - 1){
