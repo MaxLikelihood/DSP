@@ -609,7 +609,7 @@ void DSPdataOutput(){
 }
 
 void setupPlot(){
-	printf("set terminal x11 noraise persist\n");
+	printf("set terminal x11 title \"SimpleDSP\" persist noraise\n");
 	printf("unset label\n");
 	printf("unset arrow\n");
 	printf("set title \"DSP Frequency Decibel RT Spectrum\n");
