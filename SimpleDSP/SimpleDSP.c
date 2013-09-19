@@ -1,4 +1,8 @@
 /*
+
+Copyright (c) 2013 Fan Jin under MIT License
+
+/*
 *====================Documentation=======================
 *					  Compilation
 *gcc -o SimpleDSP SimpleDSP.c -lportaudio -lpthread -lm -lrt -Wall -Wextra
