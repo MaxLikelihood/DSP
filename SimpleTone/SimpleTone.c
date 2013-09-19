@@ -1,3 +1,8 @@
+/*
+
+Copyright (c) 2013 Fan Jin under MIT License
+
+*/
 //compile:
 //gcc -o SimpleTone SimpleTone.c -lportaudio -lm -w
 
