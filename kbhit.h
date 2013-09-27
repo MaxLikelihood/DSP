@@ -2,7 +2,7 @@
 #define KBHITh
 
 #include <termios.h>
-#include <unistd.h>   // for read()
+#include <unistd.h>
 
 void   init_keyboard(void);
 void   close_keyboard(void);
