@@ -1,7 +1,5 @@
 DSP (Digital Signal Processing)
 ===============================
-What's Inside?
----------------
 Inside this repository you will find varies C implemented applications for your digital signal processing needs.
 How to Use?
 ---------------
@@ -11,4 +9,4 @@ Do I need additional libraries?
 Yes, [PortAudio][1], a cross-platform API for interacting with onboard audio devices, is required. Non-standard includes will be provided in the root repository directory.
 
 
-[1]: http://www.portaudio.com/ "PortAudio"
+[1]: http://www.portaudio.com/ "PortAudio Mainpage"
