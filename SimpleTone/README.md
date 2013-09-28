@@ -7,9 +7,13 @@ First, make sure you have all the necessary libraries. Now, run the following in
 Instructions
 ==========================
 At any time during execution, press
+
 `q` - To quit and close audio stream
+
 `u` - To update the frequency and associated volume
+
 `p` - To update the duration & pause (duty cycle)
+  
 After launch, if no error occurs in initializing PortAudio, a list of audio devices, including the current default, will be displayed. For example,
 		Device Index	Device Name
 		0		HDA Intel PCH: ALC269VC Analog (hw:0,0)
