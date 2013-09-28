@@ -13,8 +13,9 @@ At any time during execution, press
 `u` - To update the frequency and associated volume
 
 `p` - To update the duration & pause (duty cycle)
-  
+
 After launch, if no error occurs in initializing PortAudio, a list of audio devices, including the current default, will be displayed. For example,
+  
 		Device Index	Device Name
 		0		HDA Intel PCH: ALC269VC Analog (hw:0,0)
 		1		HDA Intel PCH: HDMI 0 (hw:0,3)
@@ -28,8 +29,10 @@ After launch, if no error occurs in initializing PortAudio, a list of audio devi
 		9		dmix
 		10		default
 		Default Input Device: default
-	Default Output Device: default
+		Default Output Device: default
+  
 Each device is given an index, choose the appropriate output device by entering its index at the next prompt,
+
 		Choose Output Device: 3
 Selected device name will be displayed for verification,
 		Output Device Selected: front
