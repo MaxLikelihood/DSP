@@ -75,7 +75,9 @@ If all goes well, the application will attempt to open & start the audio stream;
 `p` - To update the duration & pause (duty cycle)
   
 That's it, enjoy!
-
-
+  
+Note
+-----------------------------
+If the device you know is not appearing in the list, try waiting for a bit and restart the application (Force quit with `Ctrl+C`). If problem still persists, try rebooting.
 
 
