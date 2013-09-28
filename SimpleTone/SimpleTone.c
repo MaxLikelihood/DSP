@@ -130,11 +130,13 @@ int main(int argc, char const *argv[])
 	int i, ret;
 	char ch='x';
 
-	printf("Welcome to BlastoMeter....\n");
 	paErr = Pa_Initialize();
 	if (paErr != paNoError) {
 		printf("Potential Error Initializing PortAudio\nPortAudio Error: %s\n", Pa_GetErrorText(paErr));
+		printf("Exiting...\n");
+		return -1;
 	}
+	printf("Welcome to SimpleTone....\n");
 	if (displayDevice() < 0) return -1;
 	memset(&inputParameters, 0, sizeof(PaStreamParameters));
 	memset(&outputParameters, 0, sizeof(PaStreamParameters));
