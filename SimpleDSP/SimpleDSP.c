@@ -602,6 +602,7 @@ void setupPlot(){
 	printf("set ytics\n");
 	printf("set ztics\n");
 	printf("set zrange [ * : 0.0000 ] noreverse\n");
+	printf("set key below\n");
 }
 
 int main(int argc, char const *argv[])
