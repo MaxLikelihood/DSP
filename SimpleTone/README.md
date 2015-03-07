@@ -1,6 +1,7 @@
 SimpleTone
 ===========================
 A keyboard interactive tone generator for generating tone at any particular frequency for specified duty cycle. 
+![Sample Usage](https://github.com/MaxLikelihood/DSP/raw/master/SimpleTone/simpletone.gif)
 How to Compile?
 ==========================
 First, make sure you have all the necessary libraries. Now, run the following in the source directory `gcc -o SimpleTone SimpleTone.c -lportaudio -lm -w`
